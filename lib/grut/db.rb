@@ -1,22 +1,22 @@
 require 'sequel'
+require 'singleton'
 
-DB = Sequel.sqlite
+class DB
+  include Singleton
 
-DB.create_table :roles do
-  primary_key :id
-  Integer :user_id, index: true
-  String :name, index: true # TODO: add uniq index for [user_id + name]
-end
+  def self.conn
+    instance.conn
+  end
 
-DB.create_table :permissions do
-  primary_key :id
-  Integer :role_id, index: true
-  String :name, index: true # TODO: add uniq index for [role_id + name]
-end
+  def conn
+    @conn ||= Sequel.connect(db_url)
+  end
 
-DB.create_table :permission_params do
-  primary_key :id
-  Integer :permission_id
-  String :key, index: true
-  String :value, index: true # TODO: add uniq index for [permission_id + name + value]
+  private
+
+  def db_url
+    url = Grut::Config.instance.db_url
+    fail 'Database connection is not configured' unless url
+    url
+  end
 end

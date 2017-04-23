@@ -1,10 +1,11 @@
 # Grut
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/grut`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Define user permissions in a Ruby project dynamically and store them in a database with Grut's help.
+This allows to manage access to specific entities for concrete users on the fly through a user interface.
 
 ## Installation
+
+Grut requires already installed any of the database adapters supported by [sequel](https://github.com/jeremyevans/sequel). `pg` and `mysql2` are the most popular ones.
 
 Add this line to your application's Gemfile:
 
@@ -12,17 +13,44 @@ Add this line to your application's Gemfile:
 gem 'grut'
 ```
 
-And then execute:
+Configure the database connection after that in some place of the project that have Grut installed. For example, it could be the following line in the `config/application.rb` of a Rails project:
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install grut
+```ruby
+Grut::Config.instance.db_url = 'postgres://ka8725:@localhost/check_development'
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+There are two main classes: `Grut::Guardian` and `Grut::Statement`. Use `Grut::Guardian` to manage control
+access for entries and `Grut::Statement` to get information about defined permissions for a given user.
+Look into the following code snippet that demonstrates their usage:
+
+```ruby
+user = Struct.new(:id).new(42)
+store = Struct.new(:id).new(12)
+
+guardian = Grut::Guardian.new(user, :admin)
+statement = Grut::Statement.new(user)
+
+guardian.permitted?(:manage_store, all: true) # => false
+guardian.permitted?(:manage_store, id: store.id) # => false
+statement.all #=> []
+
+guardian.permit(:manage_store, all: true)
+guardian.permitted?(:manage_store, all: true) # => true
+guardian.permitted?(:manage_store, id: store.id) # => true
+statement.all #=> [#<struct Grut::Statement::Entry role="admin", permission="manage_store", contract_key="all", contract_value="true">]
+
+guardian.forbid(:manage_store, all: true)
+guardian.permitted?(:manage_store, all: true) # => false
+guardian.permitted?(:manage_store, id: store.id) # => false
+statement.all #=> []
+
+guardian.permit(:manage_store, id: 1)
+guardian.permitted?(:manage_store, all: true) # => true
+guardian.permitted?(:manage_store, id: store.id) # => true
+statement.all #=> [#<struct Grut::Statement::Entry role="admin", permission="manage_store", contract_key="id", contract_value="1">]
+```
 
 ## Development
 
