@@ -16,7 +16,16 @@ gem 'grut'
 Configure the database connection after that in some place of the project that have Grut installed. For example, it could be the following line in the `config/application.rb` of a Rails project:
 
 ```ruby
-Grut::Config.instance.db_url = 'postgres://ka8725:@localhost/check_development'
+Grut::Config.instance.db_url = 'postgres://username:password@localhost/my_project_dev'
+```
+
+> It's assumed that in that case there will be used `pg` gem and there will be created `my_project_dev` database
+> and the `username` user with the `password` password has access to that database.
+
+And run migrations:
+
+```
+rake grut:install
 ```
 
 ## Usage
