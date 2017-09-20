@@ -14,9 +14,9 @@ describe Grut::Statement do
 
     @statement = Grut::Statement.new(user)
 
-    @entry1 = Grut::Statement::Entry.new('manager', 'manage_product', 'id', '1')
+    @entry1 = Grut::Statement::Entry.new('manager', 'manage_product', 'exclusive', {'id' => '1'})
     @entry2 = Grut::Statement::Entry.new('manager', 'manage_store', 'all', 'true')
-    @entry3 = Grut::Statement::Entry.new('admin', 'purge_product', 'id', '1')
+    @entry3 = Grut::Statement::Entry.new('admin', 'purge_product', 'exclusive', {'id' => '1'})
     @entry4 = Grut::Statement::Entry.new('admin', 'purge_store', 'all', 'true')
   end
 

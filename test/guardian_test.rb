@@ -49,6 +49,19 @@ describe Grut::Guardian do
       assert_equal 1, entries_count
     end
 
+    it 'allows to provide complex constraint' do
+      @guardian.permit(:manage_store, id: 1, status: :open)
+      assert @guardian.permitted?(:manage_store, id: 1, status: :open)
+      refute @guardian.permitted?(:manage_store, id: 2, status: :open)
+      refute @guardian.permitted?(:manage_store, id: 1, status: :closed)
+
+      @guardian.permit(:manage_store, id: 2, status: :closed)
+      assert @guardian.permitted?(:manage_store, id: 1, status: :open)
+      assert @guardian.permitted?(:manage_store, id: 2, status: :closed)
+      refute @guardian.permitted?(:manage_store, id: 2, status: :open)
+      refute @guardian.permitted?(:manage_store, id: 1, status: :closed)
+    end
+
     it 'allows to set permission to manage all' do
       @guardian.permit(:manage, all: true)
       assert @guardian.permitted?(:manage_store, id: 1)
@@ -105,6 +118,13 @@ describe Grut::Guardian do
       @guardian.forbid(:manage_store, all: true)
       refute @guardian.permitted?(:manage_store, id: 2)
       refute @guardian.permitted?(:manage_store, all: true)
+    end
+
+    it 'allows to forbid a particular entity when there is all contract' do
+      @guardian.permit(:manage_store, all: true)
+      @guardian.forbid(:manage_store, id: 1)
+      assert @guardian.permitted?(:manage_store, id: 2)
+      refute @guardian.permitted?(:manage_store, id: 1)
     end
   end
 end

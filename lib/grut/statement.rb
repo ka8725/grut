@@ -22,12 +22,23 @@ module Grut
       contract_condition = contract.any? ? "and #{Asset.contract_sql_condition(contract)}" : ''
 
       args = Asset.sanitize_contract_hash(contract).merge(user_id: @user.id, role: role, permission: permission)
-      DB.conn[<<-SQL, args].map { |args| Entry.from_hash(args) }
+      deserialize(DB.conn[<<-SQL, args].map { |args| Entry.from_hash(args) })
         select r.name as role, p.name as permission, pp.key as contract_key, pp.value as contract_value from #{roles_table} r
           join #{permissions_table} p on p.role_id = r.id #{permission_condition}
             join #{permission_params_table} pp on pp.permission_id = p.id #{contract_condition}
           where r.user_id = :user_id #{role_condition}
       SQL
+    end
+
+    private
+
+    def deserialize(ary)
+      ary.each do |e|
+        deserialized_value = YAML.load(e.contract_value)
+        next unless deserialized_value.is_a?(Hash)
+        e.contract_value = deserialized_value
+      end
+      ary
     end
   end
 end
