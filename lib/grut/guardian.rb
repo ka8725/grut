@@ -51,15 +51,15 @@ module Grut
 
     def permit_role_with_params(permission_name, params)
       DB.conn.transaction do
-        role = find_or_create(_Role, user_id: @user.id, name: @role)
-        break if role_manages_all?(role[:id])
-        permission = find_or_create(_Permission, role_id: role[:id], name: permission_name)
+        role_id = find_or_create(_Role, user_id: @user.id, name: @role)
+        break if role_manages_all?(role_id)
+        permission_id = find_or_create(_Permission, role_id: role_id, name: permission_name)
         if params['all'] == 'true'
-          _PermissionParam.where(permission_id: permission[:id]).delete
-          find_or_create(_PermissionParam, permission_id: permission[:id], key: 'all', value: 'true')
+          _PermissionParam.where(permission_id: permission_id).delete
+          find_or_create(_PermissionParam, permission_id: permission_id, key: 'all', value: 'true')
         else
           params.each do |key, value|
-            find_or_create(_PermissionParam, permission_id: permission[:id], key: key, value: value)
+            find_or_create(_PermissionParam, permission_id: permission_id, key: key, value: value)
           end
         end
       end
@@ -84,7 +84,7 @@ module Grut
     end
 
     def find_or_create(entity, params)
-      entity[params] || entity[id: entity.insert(params)]
+      (entity[params] || {})[:id] || entity.insert(params)
     end
 
     def role_manages_all?(role_id)
