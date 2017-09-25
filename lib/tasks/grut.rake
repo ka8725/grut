@@ -1,7 +1,12 @@
 namespace :grut do
   task :config do
     require 'yaml'
-    Grut::Config.instance.db_url ||= YAML.load_file('config/grut_database.yml')
+    env = ENV['ENV'] || ENV['RAILS_ENV'] || 'development'
+    config_file = nil
+    config_file ||= 'config/grut_database.yml' if File.exists?('config/grut_database.yml')
+    config_file ||= 'config/database.yml' if File.exists?('config/database.yml')
+    fail 'Config file not found' unless config_file
+    Grut::Config.instance.db_url ||= YAML.load_file(config_file)[env]
   end
 
   desc 'Create necessary tables in the DB, specified by a config'
